@@ -22,4 +22,11 @@
 #define PWM_FREQ 1000     // Frequency in Hz (1000 Hz for a typical buzzer tone)
 #define PWM_RESOLUTION 8  // 8-bit resolution (0-255 duty cycle)
 
+// NTC Thermistors (NB12K00103JBB)
+#define R1 10000.0  // 10 kΩ fixed resistor
+#define R0 10000.0  // Thermistor resistance at 25°C
+#define T0 298.15   // Reference temperature (25°C in Kelvin)
+#define BETA 3977   // Beta value (B25/85)
+#define VCC 3.3     // ESP32 supply voltage
+#define ADC_MAX 4095 // 12-bit ADC
 #endif //_PINOUT_H
