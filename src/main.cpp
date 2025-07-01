@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <SPI.h>
+#include <Adafruit_INA237.h>
 #include "pinout.h"
-
 
 // put function declarations here:
 void blink_redLed();
@@ -10,9 +10,11 @@ void ring_buzzer();
 float readTemperature();
 
 // TMP126 register addresses
-#define TEMP_RESULT_REG 0x00;
-
-SPISettings spiSettings(1000000, MSBFIRST, SPI_MODE0); // 1000000 = 1MHz
+#define TEMP_RESULT_REG 0x00 // Temperature result register
+// SPI settings (Mode 0, 1 MHz, MSB first)
+SPISettings spiSettings(1000000, MSBFIRST, SPI_MODE0);
+// INA237 instance
+Adafruit_INA237 ina237 = Adafruit_INA237();
 
 
 void setup() {
@@ -32,6 +34,20 @@ void setup() {
   pinMode(CS_PIN, OUTPUT);
   digitalWrite(CS_PIN, HIGH); // Deselect chip
   SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_PIN);
+
+// Initialize the INA237 sensor
+  if (!ina237.begin()) {
+    Serial.println("Couldn't find INA237 chip");
+    while (1);
+  }
+
+  // Configure shunt resistance (15 mΩ) and max current (10 A)
+  ina237.setShunt(0.015, 10.0);
+  // Set averaging and conversion times for better accuracy
+  ina237.setAveragingCount(INA2XX_COUNT_16);
+  ina237.setVoltageConversionTime(INA2XX_TIME_150_us);
+  ina237.setCurrentConversionTime(INA2XX_TIME_280_us);
+
 }
 
 void loop() {
@@ -43,7 +59,14 @@ void loop() {
   float temp = readTemperature();
   Serial.print("Temperature: ");
   Serial.print(temp, 2); 
-  Serial.println(" °C");   
+  Serial.println(" °C");
+
+   Serial.printf("Current: %.2f mA, Bus Voltage: %.2f V, Shunt Voltage: %.0f uV, Power: %.2f mW, Temp: %.2f C\n",
+                ina237.getCurrent_mA(),
+                ina237.getBusVoltage_V(),
+                ina237.getShuntVoltage_mV() * 1000.0, // Convert mV to μV
+                ina237.getPower_mW(),
+                ina237.readDieTemp());
 }
 
 void blink_redLed() {
@@ -92,4 +115,3 @@ float readTemperature() {
 
   return temperature;
 }
-
