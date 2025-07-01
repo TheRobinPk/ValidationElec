@@ -10,13 +10,16 @@ void ring_buzzer();
 float readTemperature();
 
 // TMP126 register addresses
-#define TEMP_RESULT_REG 0x00 // Temperature result register
-// SPI settings (Mode 0, 1 MHz, MSB first)
-SPISettings spiSettings(1000000, MSBFIRST, SPI_MODE0);
+#define TEMP_RESULT_REG 0x00;
+
+SPISettings spiSettings(1000000, MSBFIRST, SPI_MODE0); // 1000000 = 1MHz
 
 
 void setup() {
   // put your setup code here, to run once:
+  Serial.begin(115200);
+  delay(1000); 
+  
   pinMode(REDLED_PIN, OUTPUT);
   pinMode(GREENLED_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
@@ -26,15 +29,9 @@ void setup() {
   ledcAttachPin(BUZZER_PIN, PWM_CHANNEL);              // Attach buzzer pin to PWM channel
 
   //setup SPI communication
-  Serial.begin(115200);
-  delay(1000); 
-
   pinMode(CS_PIN, OUTPUT);
   digitalWrite(CS_PIN, HIGH); // Deselect chip
-
-  // Initialize SPI
   SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, CS_PIN);
-
 }
 
 void loop() {
@@ -46,11 +43,7 @@ void loop() {
   float temp = readTemperature();
   Serial.print("Temperature: ");
   Serial.print(temp, 2); 
-  Serial.println(" °C");
-
-
-
-   
+  Serial.println(" °C");   
 }
 
 void blink_redLed() {
@@ -68,7 +61,7 @@ void blink_greenLed() {
 }
 
 void ring_buzzer() {
-  ledcWrite(PWM_CHANNEL, 128); // Set duty cycle to 50% (128 out of 255)
+  ledcWrite(PWM_CHANNEL, 254); // Set volume Loud 1 -> 254 Quiet
   delay(500);
   ledcWrite(PWM_CHANNEL, 0);   // Turn off the buzzer
   delay(500);
@@ -78,13 +71,10 @@ float readTemperature() {
   uint16_t tempRaw;
   float temperature;
 
-
   uint16_t command = (1 << 8) | TEMP_RESULT_REG; 
 
   SPI.beginTransaction(spiSettings);
   digitalWrite(CS_PIN, LOW);
-
-
   SPI.transfer16(command);
 
   // Read 16-bit temperature data
@@ -93,8 +83,7 @@ float readTemperature() {
   digitalWrite(CS_PIN, HIGH); 
   SPI.endTransaction();
 
-  // Ensure 100 ns delay between transactions (handled by ESP32 hardware)
-  delayMicroseconds(1);
+  delayMicroseconds(1); // 100 ns delay between transactions (handled by ESP32 hardware)
 
   // Convert raw data to temperature °C
   int16_t tempSigned = (int16_t)(tempRaw & 0xFFFC); 
