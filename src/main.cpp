@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Adafruit_INA237.h>
+#include <Arduino.h>
+#include <math.h>
 #include "pinout.h"
 
 // put function declarations here:
@@ -8,6 +10,7 @@ void blink_redLed();
 void blink_greenLed();
 void ring_buzzer();
 float readTemperature();
+float readNTCTemperature(int pin);
 
 // TMP126 register addresses
 #define TEMP_RESULT_REG 0x00 // Temperature result register
@@ -50,6 +53,10 @@ void setup() {
   ina237.setVoltageConversionTime(INA2XX_TIME_150_us);
   ina237.setCurrentConversionTime(INA2XX_TIME_280_us);
 
+  // Initialize ADC
+  analogReadResolution(12); // 12-bit resolution
+  analogSetAttenuation(ADC_11db); // 0–3.3V range
+
 }
 
 void loop() {
@@ -63,12 +70,16 @@ void loop() {
   Serial.print(temp, 2); 
   Serial.println(" °C");
 
-   Serial.printf("Current: %.2f mA, Bus Voltage: %.2f V, Shunt Voltage: %.0f uV, Power: %.2f mW, Temp: %.2f C\n",
+  Serial.printf("Current: %.2f mA, Bus Voltage: %.2f V, Shunt Voltage: %.0f uV, Power: %.2f mW, Temp: %.2f C\n",
                 ina237.getCurrent_mA(),
                 ina237.getBusVoltage_V(),
                 ina237.getShuntVoltage_mV() * 1000.0, // Convert mV to μV
                 ina237.getPower_mW(),
                 ina237.readDieTemp());
+
+  float ntc1Temp = readNTCTemperature(NTC1_PIN);
+  float ntc2Temp = readNTCTemperature(NTC2_PIN);
+  Serial.printf("NTC1 (GPIO26) Temp: %.2f C, NTC2 (GPIO25) Temp: %.2f C\n", ntc1Temp, ntc2Temp);
 }
 
 void blink_redLed() {
@@ -120,4 +131,31 @@ float readTemperature() {
   temperature = tempSigned * 0.03125;
 
   return temperature;
+}
+
+float readNTCTemperature(int pin) {
+  // Read ADC (average 10 samples for stability)
+  uint32_t adcSum = 0;
+  const int samples = 10;
+  for (int i = 0; i < samples; i++) {
+    adcSum += analogRead(pin);
+    delay(1);
+  }
+  float adcValue = adcSum / (float)samples;
+
+  // Convert ADC to voltage
+  float voltage = (adcValue / ADC_MAX) * VCC;
+
+  // Calculate thermistor resistance
+  float R_therm = (R1 *voltage) / (VCC - voltage);
+
+  // Calculate temperature using Beta model
+  float invT = 1.0 / T0 + (1.0 / BETA) * log(R_therm / R0);
+  float tempK = 1.0 / invT;
+  float tempC = tempK - 273.15;
+
+  // Debug: Print resistance
+  Serial.print("NTC Pin "); Serial.print(pin); Serial.print(" Resistance: "); Serial.print(R_therm, 0); Serial.println(" Ω");
+
+  return tempC;
 }
