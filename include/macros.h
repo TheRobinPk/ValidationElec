@@ -1,5 +1,5 @@
-#ifndef _PINOUT_H
-#define _PINOUT_H
+#ifndef _MACROS_H
+#define _MACROS_H
 
 #define BUZZER_PIN 13
 #define GREENLED_PIN 14
@@ -30,13 +30,12 @@
 #define VCC 3.3     // ESP32 supply voltage
 #define ADC_MAX 4095 // 12-bit ADC
 
+// TMP126 register addresses
+#define TEMP_RESULT_REG 0x00 // Temperature result register
 
-// put function declarations here:
-void blink_redLed();
-void blink_greenLed();
-void ring_buzzer();
-float readTemperature();
-float readNTCTemperature(int pin);
+// BLE UUIDs
+#define SERVICE_UUID        "abcd1234-5678-1234-5678-123456789abb" // Custom service UUID (replace if needed)
+#define CHARACTERISTIC_UUID_RX "abcd1234-5678-1234-5678-123456789abc" // Write
+#define CHARACTERISTIC_UUID_TX "abcd1234-5678-1234-5678-123456789abd" // Notify
 
-
-#endif //_PINOUT_H
+#endif // _MACROS_H
