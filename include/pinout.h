@@ -29,4 +29,14 @@
 #define BETA 3977   // Beta value (B25/85)
 #define VCC 3.3     // ESP32 supply voltage
 #define ADC_MAX 4095 // 12-bit ADC
+
+
+// put function declarations here:
+void blink_redLed();
+void blink_greenLed();
+void ring_buzzer();
+float readTemperature();
+float readNTCTemperature(int pin);
+
+
 #endif //_PINOUT_H
