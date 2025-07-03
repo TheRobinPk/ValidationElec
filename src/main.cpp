@@ -121,7 +121,7 @@ void setup() {
     Serial.println("Couldn't find INA237 chip");
     is_INA_connected = false;
   } else {
-    // Configure shunt resistance (15 mΩ) and max current (10 A)
+    // Configure shunt resistance (0.5 mΩ) and max current (10 A)
     ina237.setShunt(0.0005, 10.0);
     // Set averaging and conversion times for better accuracy
     ina237.setAveragingCount(INA2XX_COUNT_16);
@@ -135,7 +135,7 @@ void setup() {
   analogSetAttenuation(ADC_11db); // 0–3.3V range
 
 
-  BLEDevice::init("ESP32_BLUEZ");
+  BLEDevice::init("ESP32_RAA");
   pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyServerCallbacks());
 
@@ -155,7 +155,7 @@ void setup() {
 
   pService->start();
   BLEDevice::getAdvertising()->start();
-  Serial.println("BLE started as ESP32_BLUEZ");
+  Serial.println("BLE started as ESP32_RAA");
 }
 
 void loop() {
