@@ -122,7 +122,7 @@ void setup() {
     is_INA_connected = false;
   } else {
     // Configure shunt resistance (15 mΩ) and max current (10 A)
-    ina237.setShunt(0.015, 10.0);
+    ina237.setShunt(0.0005, 10.0);
     // Set averaging and conversion times for better accuracy
     ina237.setAveragingCount(INA2XX_COUNT_16);
     ina237.setVoltageConversionTime(INA2XX_TIME_150_us);
